@@ -4,6 +4,8 @@ BUILDDIR=build
 
 SRC = $(wildcard $(SRCDIR)/*.s)
 
+EXTERNALS = $(wildcard ../obj/*.s)
+
 OBJ=$(patsubst $(SRCDIR)/%.s,$(BUILDDIR)/%.o,$(SRC))
 
 DEBUG_FLAGS = -g
