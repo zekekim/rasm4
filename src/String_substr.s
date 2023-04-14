@@ -8,8 +8,9 @@
  * Professor: 	Barnett
  ***************************/
 
-.include "../include/macros.inc"
+.include "macros.inc"
 
+.global String_substr
 String_substr:
 	push
 	mov	x19,	x0
@@ -24,7 +25,7 @@ String_substr:
 		b.eq	String_substr_found
 		cmp	w22,	#0
 		b.eq	String_substr_end
-		cmp	w23,	w22
+		bl	String_compareChar
 		b.ne	String_substr_reset
 		add	x21,	x21,	#1
 		b	String_substr_loop
@@ -40,4 +41,24 @@ String_substr:
 	String_substr_end:
 		pop
 		ret
+
+
+String_compareChar:
+	push
+	String_compareChar_sub:
+		cmp	w23,	'a'
+		b.ge	String_toUpper_Three
+		cmp	w22,	'a'
+		b.ge	String_toUpper_Two
+		cmp w22,	w23
+		pop
+		ret
+
+	String_toUpper_Three:
+		sub	x23,	x23,	#32
+		b String_compareChar_sub
+	
+	String_toUpper_Two:
+		sub	x22,	x22,	#32
+		b String_compareChar_sub
 

@@ -8,13 +8,9 @@
  * Professor: 	Barnett
  ***************************/
 
-	.include	"../includes/macros.inc"
+	.include	"macros.inc"
 
-	.data:
-		szLine:	.asciz	"Line "
-		szSemi:	.asciz	": \""
-		szQuot:	.asciz	"\"\n"
-		szBuff:	.skip	21
+
 
 /****************************
  * Routine:	LL_isEmpty
@@ -25,7 +21,7 @@
  * Author: 	Ezekiel Kim
  * Professor: 	Barnett
  ***************************/
-
+.global LL_isEmpty
 LL_isEmpty:
 	push
 	mov	x19,	x0
@@ -54,7 +50,7 @@ LL_isEmpty:
  * Author: 	Ezekiel Kim
  * Professor: 	Barnett
  ***************************/
-
+.global LL_add
 LL_add:
 	push
 	mov	x19,	x0	// Head
@@ -81,10 +77,9 @@ LL_add:
 		mov	x0,	#16
 		bl malloc
 		str	x21,	[x0]	// Load new ptr into node
-		mov	x22,	x20	// Tail pointer in x22
-		ldr	x20,	[x20]	// Dereference tail, now pointer to tail node
-		str	x21,	[x20,	#8]	// Put into tail
-		str	x21,	[x22]	// New tail to end
+		ldr	x22,	[x20]
+		str	x0,		[x22,	#8]	// Put into tail
+		str	x0,		[x20]	// New tail to end
 		b	LL_add_end
 
 	LL_add_end:
@@ -100,15 +95,15 @@ LL_add:
  * Author: 	Ezekiel Kim
  * Professor: 	Barnett
  ***************************/
-
+.global LL_numNodes
 LL_numNodes:
 	push
 	mov	x19,	x0	// Head
 	bl	LL_isEmpty	// Check is empty
 	cmp	x0,	#1
+	mov x0,	#0
 	b.eq	LL_numNodes_end
 	ldr	x19,	[x19]	// Get first node
-	mov	x0,	#0	// Counter
 
 
 	LL_numNodes_loop:
@@ -134,7 +129,7 @@ LL_numNodes:
  * Author: 	Ezekiel Kim
  * Professor: 	Barnett
  ***************************/
-
+.global LL_delete
 LL_delete:
 	push
 	mov	x19,	x0	// Head
@@ -144,24 +139,34 @@ LL_delete:
 	b.eq	LL_delete_end
 	ldr	x19,	[x19]		// Get head pointing to first node
 	mov	x0,	#0	// Current index
+	mov x24,	#0
 
 	
 	LL_delete_loop:
 		ldr	x22,	[x19]		// Current pointer
 		ldr	x23,	[x19,	#8]	// Current pointer next
-		add	x0,	x0,	#1	// Add one to count current node
 		cmp	x0,	x21
 		b.eq	LL_delete_found
 		cmp	x23,	#0		// Check if next is null
 		b.eq	LL_delete_end
-		mov	x24,	x19		// Store previous poiner in x24
+		add	x0,	x0,	#1	// Add one to count current node
+		mov	x24,	x19		// Store previous pointer in x24
 		mov	x19,	x23		// Start on next
 		b	LL_delete_loop
 	
 	LL_delete_found:
 		mov	x0,	x22	// Free string
 		bl	free
+		cmp x24,	#0
+		b.eq	LL_delete_found_head
 		str	x23,	[x24,	#8]	// Store next in previous next
+		b	LL_delete_found_two
+	
+	LL_delete_found_head:
+		str x23,	[x19]
+		b	LL_delete_found_two
+	
+	LL_delete_found_two:
 		mov	x0,	x19	// Delete node
 		bl	free
 		b	LL_delete_end
@@ -174,15 +179,17 @@ LL_delete:
  * Routine:	LL_print
  * Params:
  * 	- x0:	int head
+ *	- x1:	int fd
  * Return:
  *	- Nothing
  * Author: 	Ezekiel Kim
  * Professor: 	Barnett
  ***************************/
-
+.global LL_print
 LL_print:
 	push
 	mov	x19,	x0	//Head
+	mov	x23,	x1
 	bl	LL_isEmpty
 	cmp	x0,	#1
 	b.eq	LL_print_end
@@ -194,6 +201,7 @@ LL_print:
 		ldr	x21,	[x19,	#8]
 		mov	x0,	x22
 		mov	x1,	x20
+		mov	x2,	x23
 		bl	LL_printNode
 		cmp	x21,	#0
 		b.eq	LL_print_end
@@ -211,30 +219,33 @@ LL_print:
  * Params:
  * 	- x0:	int index
  *	- x1:	ptr string
+ *	- x2:	int fd
  * Return:
  *	- Nothing
  * Author: 	Ezekiel Kim
  * Professor: 	Barnett
  ***************************/
-
+.global LL_printNode
 LL_printNode:
 	push
 	mov	x19,	x1
 	mov	x20,	x0
-	ldr	x0,	=szLine
-	// TODO print to output.txt
-	bl	putstring
+	mov	x21,	x2
+	mov	x0,	x21
+	ldr	x1,	=szLine
+	bl	File_write
 	mov	x0,	x20
 	ldr	x1,	=szBuff
 	bl	int64asc
-	ldr	x0,	=szBuff
-	bl	putstring
-	ldr	x0,	=szSemi
-	bl	putstring
-	mov	x0,	x19
-	bl	putstring
-	mov	x0,	=szQuot
-	bl	putstring
+	mov	x0,	x21
+	ldr	x1,	=szBuff
+	bl	File_write
+	mov	x0,	x21
+	ldr	x1,	=szSemi
+	bl	File_write
+	mov	x0,	x21
+	mov	x1,	x19
+	bl	File_write
 	pop
 	ret
 
@@ -249,12 +260,14 @@ LL_printNode:
  * Author: 	Ezekiel Kim
  * Professor: 	Barnett
  ***************************/
-
+.global LL_replace
 LL_replace:
 	push
 	mov	x19,	x0	// Head
 	mov	x21,	x1	// Search Index
-	mov	x25,	x2	// String to replace
+	mov	x0,	x2		// String to replace
+	bl	String_copyln
+	mov	x22,	x0
 	bl	LL_isEmpty
 	cmp	x0,	#1
 	b.eq	LL_replace_end
@@ -263,21 +276,21 @@ LL_replace:
 
 	
 	LL_replace_loop:
-		ldr	x22,	[x19]		// Current pointer
-		ldr	x23,	[x19,	#8]	// Current pointer next
-		add	x0,	x0,	#1	// Add one to count current node
+		ldr	x23,	[x19]		// Current pointer
+		ldr	x24,	[x19,	#8]	// Current pointer next
 		cmp	x0,	x21
 		b.eq	LL_replace_found
-		cmp	x23,	#0		// Check if next is null
+		add	x0,	x0,	#1	// Add one to count current node
+		cmp	x24,	#0		// Check if next is null
 		b.eq	LL_replace_end
-		mov	x24,	x19		// Store previous poiner in x24
-		mov	x19,	x23		// Start on next
+		mov	x25,	x19		// Store previous poiner in x24
+		mov	x19,	x24		// Start on next
 		b	LL_replace_loop
 	
 	LL_replace_found:
-		mov	x0,	x22	// Free string
+		mov	x0,		x23	// Free string
 		bl	free
-		ldr	x25,	[x19]	
+		str	x22,	[x19]	
 		b	LL_replace_end
 	
 	LL_replace_end:
@@ -289,16 +302,18 @@ LL_replace:
  * Params:
  * 	- x0:	head
  *	- x1:	ptr substr
+ *	- x2:	fd
  * Return:
  *	- Nothing
  * Author: 	Ezekiel Kim
  * Professor: 	Barnett
  ***************************/
-
+.global LL_search
 LL_search:
 	push
 	mov	x19,	x0	// Head
 	mov	x20,	x1	// Substr
+	mov	x24,	x2	// fd
 	mov	x21,	#0	// Current Index
 	bl	LL_isEmpty
 	cmp	x0,	#1
@@ -313,12 +328,62 @@ LL_search:
 		add	x21,	x21,	#1
 		bl	String_substr
 		cmp	x0,	#0
-		b.eq	LL_search_loop
-		sub	x0,	x21,	#1	// Index
-		mov	x1,	x22	// Ptr String
-		bl	LL_printNode
+		b.ne	LL_search_found
 		mov	x19,	x23
+		cmp x19,	#0
+		b.eq	LL_search_end
 		b	LL_search_loop
 
+	LL_search_found:
+		sub	x0,	x21,	#1	// Index
+		mov	x1,	x22	// Ptr String
+		mov x2,	x24
+		bl	LL_printNode
+		mov	x19,	x23
+		cmp x19,	#0
+		b.eq LL_search_end
+		b	LL_search_loop
+	
+	LL_search_end:
+		pop
+		ret
 
+
+
+.global LL_deleteAll
+LL_deleteAll:
+	push
+	mov	x19,	x0	// Head
+	mov x21,	x0	// Actual Head
+	mov	x20,	x1	// Tail
+	bl	LL_isEmpty
+	cmp	x0,	#1
+	b.eq	LL_deleteAll_end
+	ldr	x19,	[x19]		// Get head pointing to first node
+
+	
+	LL_deleteAll_loop:
+		ldr	x22,	[x19]		// Current pointer
+		ldr	x23,	[x19,	#8]	// Current pointer next
+		mov	x0,	x22	// Free string
+		bl	free
+		mov	x0,	x19	// Free node
+		bl	free
+		cmp	x23,	#0		// Check if next is null
+		b.eq	LL_deleteAll_end
+		mov	x19,	x23		// Start on next
+		b	LL_deleteAll_loop
+	
+	LL_deleteAll_end:
+		mov	x0,	#0
+		str	x0,	[x21]
+		str x0,	[x20]
+		pop
+		ret
 		
+	.data
+		szLine:	.asciz	"Line "
+		szSemi:	.asciz	": "
+		szBuff:	.skip	128
+
+.end

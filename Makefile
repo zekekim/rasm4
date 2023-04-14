@@ -1,12 +1,15 @@
 SRCDIR=src
 INCDIR=include
 BUILDDIR=build
+OBJDIR=obj
 
 SRC = $(wildcard $(SRCDIR)/*.s)
 
-EXTERNALS = $(wildcard ../obj/*.s)
+EXTERNALS = $(wildcard ../obj/*.o)
 
-OBJ=$(patsubst $(SRCDIR)/%.s,$(BUILDDIR)/%.o,$(SRC))
+VIRTUALS = /usr/lib/aarch64-linux-gnu/libc.so -dynamic-linker /lib/ld-linux-aarch64.so.1
+
+OBJ=$(patsubst $(SRCDIR)/%.s,$(OBJDIR)/%.o,$(SRC))
 
 DEBUG_FLAGS = -g
 
@@ -14,18 +17,16 @@ CC = as $(DEBUG_FLAGS)
 
 LD = ld -lc -lm
 
-TARGET=driver
+TARGET = rasm4
 
-all: $(TARGET)
+$(BUILDDIR)/$(TARGET): $(OBJ) $(EXTERNALS) 
+	$(LD) -o $@ $^ $(VIRTUALS)
 
-$(TARGET): $(OBJ)
-	$(LD) -o $(OBJ) $(BUILDDIR)/$(TARGET) /usr/lib/aarch64-linx-gnu/libc.so -dynamic-linker /lib/ld-linux-aarch64.so.1
-
-$(BUILDDIR)/%.o: $(SRDIR)/%.s | $(BUILDDIR)
-	$(CC) -I $(INCDIR) -c $< -o $@
+$(OBJDIR)/%.o: $(SRCDIR)/%.s
+	$(CC) -I $(INCDIR) -o $@ $<
 
 $(BUILDDIR):
 	mkdir $(BUILDDIR)
 
 clean:
-	rm-rf $(BUILDDIR) $(TARGET)
+	rm -rf $(BUILDDIR)
