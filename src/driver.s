@@ -16,7 +16,22 @@ getInt:
 		pop
 		ret
 
+getFileNames:
+		push
+		ldr	x0,	=szPromptIn
+		bl	putstring
+		ldr	x0,	=inputFile
+		bl	getstring
+		ldr	x0,	=szPromptOut
+		bl	putstring
+		ldr	x0,	=outputFile
+		bl	getstring
+		pop
+		ret
+		
+
 _start:
+	bl	getFileNames
 	bl	openFiles
 	input:
 		ldr	x0,	=ptrHead
@@ -74,8 +89,10 @@ _start:
 	    addFromKeyb:
 			ldr x0, =szString
 			bl putstring
-        	ldr x0, =szBuff
-        	bl  getstring 
+        		ldr x0, =szBuff
+        		bl  getstring 
+			ldr x0, =szBuff
+			bl  String_addNl
 			ldr	x0,	=ptrHead
 			ldr x1, =ptrTail      
 			ldr	x2,	=szBuff
@@ -145,9 +162,9 @@ _start:
 		svc	0	// Call linux to terminate the program
 
 .data
-	inputFile:		    .asciz	"input.txt"
+	inputFile:		    .skip	21
 	fdIn:				.quad	0
-	outputFile:		    .asciz	"output.txt"
+	outputFile:		    .skip	21
 	fdOut:				.quad	0
 	szBuff:				.skip	100
 	ptrHead:			.quad	0
@@ -155,6 +172,8 @@ _start:
 	szInt:				.asciz  "Enter an int > "
 	szString:			.asciz	"Enter a string > "
 	szCharIn:			.asciz	"Enter a char > "
+	szPromptIn:			.asciz	"Enter the input file name > "
+	szPromptOut:			.asciz	"Enter the output file name > "
 	
 .end
 

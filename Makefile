@@ -19,6 +19,8 @@ LD = ld -lc -lm
 
 TARGET = rasm4
 
+all: $(BUILDDIR) $(BUILDDIR)/$(TARGET)
+
 $(BUILDDIR)/$(TARGET): $(OBJ) $(EXTERNALS) 
 	$(LD) -o $@ $^ $(VIRTUALS)
 
@@ -26,7 +28,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.s
 	$(CC) -I $(INCDIR) -o $@ $<
 
 $(BUILDDIR):
-	mkdir $(BUILDDIR)
+	mkdir -p $(BUILDDIR)
 
 clean:
 	rm -rf $(BUILDDIR)

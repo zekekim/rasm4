@@ -56,3 +56,22 @@ String_copyln:
 		strb	w1,	[x0,	x21]
 		pop
 		ret
+
+.global String_addNl
+String_addNl:
+	push
+	mov	x22,	x0
+	mov	x20,	#0
+	
+	String_addln_loop:
+		ldrb	w1,	[x22,	x20]
+		cmp	w1,	#0
+		b.eq	String_addln_end
+		add	x20,	x20,	#1
+		b	String_addln_loop
+
+	String_addln_end:
+		mov 	w1,	#10
+		strb	w1,	[x0,	x20]
+		pop
+		ret

@@ -67,7 +67,9 @@ LL_add:
 	LL_add_createHead:
 		mov	x0,	#16
 		bl malloc
+		mov	x22,	#0
 		str	x21,	[x0]	// Load new ptr into node
+		str	x22,	[x0,	#8]
 		str	x0,	[x19]	// Make head
 		str	x0,	[x20]	// Make tail
 		b	LL_add_end
@@ -76,7 +78,9 @@ LL_add:
 	LL_add_toTail:
 		mov	x0,	#16
 		bl malloc
+		mov	x22,	#0
 		str	x21,	[x0]	// Load new ptr into node
+		str	x22,	[x0,	#8]
 		ldr	x22,	[x20]
 		str	x0,		[x22,	#8]	// Put into tail
 		str	x0,		[x20]	// New tail to end
@@ -137,6 +141,7 @@ LL_delete:
 	bl	LL_isEmpty
 	cmp	x0,	#1
 	b.eq	LL_delete_end
+	mov	x25,	x19
 	ldr	x19,	[x19]		// Get head pointing to first node
 	mov	x0,	#0	// Current index
 	mov x24,	#0
@@ -163,7 +168,7 @@ LL_delete:
 		b	LL_delete_found_two
 	
 	LL_delete_found_head:
-		str x23,	[x19]
+		str x23,	[x25]
 		b	LL_delete_found_two
 	
 	LL_delete_found_two:
