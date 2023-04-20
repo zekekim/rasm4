@@ -66,7 +66,7 @@ LL_add:
 
 	LL_add_createHead:
 		mov	x0,	#16
-		bl malloc
+		bl new
 		mov	x22,	#0
 		str	x21,	[x0]	// Load new ptr into node
 		str	x22,	[x0,	#8]
@@ -77,7 +77,7 @@ LL_add:
 	
 	LL_add_toTail:
 		mov	x0,	#16
-		bl malloc
+		bl new
 		mov	x22,	#0
 		str	x21,	[x0]	// Load new ptr into node
 		str	x22,	[x0,	#8]
@@ -161,7 +161,10 @@ LL_delete:
 	
 	LL_delete_found:
 		mov	x0,	x22	// Free string
-		bl	free
+		bl	String_length
+		mov	x1,	x0
+		mov	x0,	x22
+		bl	delete
 		cmp x24,	#0
 		b.eq	LL_delete_found_head
 		str	x23,	[x24,	#8]	// Store next in previous next
@@ -173,7 +176,8 @@ LL_delete:
 	
 	LL_delete_found_two:
 		mov	x0,	x19	// Delete node
-		bl	free
+		mov	x1,	#16
+		bl	delete
 		b	LL_delete_end
 	
 	LL_delete_end:
@@ -294,7 +298,10 @@ LL_replace:
 	
 	LL_replace_found:
 		mov	x0,		x23	// Free string
-		bl	free
+		bl	String_length
+		mov	x1,	x0
+		mov	x0,	x23
+		bl	delete
 		str	x22,	[x19]	
 		b	LL_replace_end
 	
@@ -385,10 +392,45 @@ LL_deleteAll:
 		str x0,	[x20]
 		pop
 		ret
+
+.global new
+new:
+	push
+	mov	x19,	x0
+	bl malloc
+	ldr	x1,	=dbSp
+	ldr	x1,	[x1]
+	add	x1,	x1,	x19
+	ldr	x2,	=dbSp
+	str	x1,	[x2]
+	pop
+	ret
+
+.global getHeapSize
+getHeapSize:
+	push
+	ldr	x0,	=dbSp
+	ldr	x0,	[x0]
+	pop
+	ret
+
+.global delete
+delete:
+	push
+	mov	x19,	x1
+	bl	free
+	ldr	x1,	=dbSp
+	ldr	x1,	[x1]
+	sub	x1,	x1,	x19
+	ldr	x2,	=dbSp
+	str	x1,	[x2]	
+	pop
+	ret
 		
 	.data
 		szLine:	.asciz	"Line "
 		szSemi:	.asciz	": "
+		dbSp:	.quad	0
 		szBuff:	.skip	128
 
 .end

@@ -15,7 +15,7 @@ String_copy:
 	mov	x22,	x0
 	bl	String_length
 	mov	x19,	x0
-	bl	malloc
+	bl	new
 	mov	x20,	#0
 	mov	x21,	#0
 	
@@ -38,7 +38,7 @@ String_copyln:
 	mov	x22,	x0
 	bl	String_length
 	add	x0,	x0,	#1
-	bl	malloc
+	bl	new
 	mov	x20,	#0
 	mov	x21,	#0
 	

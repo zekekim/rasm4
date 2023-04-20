@@ -19,7 +19,12 @@
 		bl	putstring
 		ldr	x0,	=szMsg2
 		bl	putstring
-		// TODO: output num of bytes in heap
+		bl	getHeapSize
+		ldr	x1,	=szBuf
+		mov	x2,	#8
+		bl	hex64asc
+		ldr	x0,	=szBuf
+		bl	putstring
 		ldr	x0,	=szMsg3
 		bl	putstring
 		ldr	x0,	=szMsg4
@@ -28,7 +33,7 @@
 		bl 	LL_numNodes
 		ldr	x1,	=szBuff
 		bl	int64asc
-		ldr x0, =szBuff
+		ldr 	x0, 	=szBuff
 		bl	putstring
 		ldr	x0,	=szMsg5
 		bl	putstring
@@ -47,11 +52,13 @@
 		pop
 		ret
 
+	
+
 .data
 		szMsg1:		.asciz	"RASM4 TEXT EDITOR\n "
-		szMsg2:		.asciz	"Data Structure Heap Memory Consumption "
-		szMsg3: 	.asciz	"bytes\n"
-		szMsg4:		.asciz	"Number of nodes "
+		szMsg2:		.asciz	"Data Structure Heap Memory Consumption: "
+		szMsg3: 	.asciz	" bytes\n"
+		szMsg4:		.asciz	"Number of nodes: "
 		szMsg5:		.asciz	"\n<1> View all strings\n\n"
 		szMsg6:		.asciz	"<2> Add String\n\t<a> from Keyboard\n\t<b> From File. Static file named input.txt\n\n"
 		szMsg7:		.asciz	"<3> Delete string. Given an index #, delete the entire string and de-alocate memory (including the node).\n\n"
@@ -61,3 +68,4 @@
 		szMsg11:	.asciz	"<7> Quit\n\n"
 		clear_screen:		.asciz 	"\033[2J\033[H"
 		szBuff:		.skip		100
+		szBuf:		.skip		21
