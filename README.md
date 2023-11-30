@@ -1,7 +1,5 @@
 # RASM-4
 
-RASM-4 for Barnett's CS3B ARM Assembly Program.
-
 ## Installation
 
 Run the makefile in the root directory.
